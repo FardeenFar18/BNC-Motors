@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # Getting Started with Create React App
+
+# Remote README content from GitHub
+>>>>>>> main
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
@@ -68,3 +72,6 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+=======
+# BNC-Motors
+>>>>>>> c78ef0abe520a9c9ea9cf37e2db5d1f41a6a602e

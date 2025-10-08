@@ -1,5 +1,7 @@
 import Vehicle from "../models/Vehicle.js";
 import Service from "../models/Service.js";
+import { sendSMSUsingSNS } from "../utils/smsService.js";
+
 
 /******************Get all vehicles (with pagination + search)*********************/
 export const getVehicles = async (req, res, next) => {
@@ -112,3 +114,46 @@ export const addVehicleService = async (req, res, next) => {
   }
 };
 
+
+const otpStore = new Map();
+
+export const sendOtpHandler = async (req, res) => {
+  try {
+    const { ownerContact } = req.body;
+
+    if (!ownerContact) {
+      return res.status(400).json({ error: "Owner contact number is required" });
+    }
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Send OTP via SMS
+    await sendSMSUsingSNS(otp, ownerContact);
+
+    // Store OTP temporarily (auto-expire in 5 min)
+    otpStore.set(ownerContact, otp);
+    setTimeout(() => otpStore.delete(ownerContact), 5 * 60 * 1000);
+
+    return res.json({ message: "OTP sent successfully" });
+  } catch (error) {
+    console.error("Error in sendOtpHandler:", error);
+    return res.status(500).json({ error: "Failed to send OTP" });
+  }
+};
+
+export const verifyOtpHandler = (req, res) => {
+  const { ownerContact, otp } = req.body;
+
+  if (!ownerContact || !otp) {
+    return res.status(400).json({ error: "Missing contact number or OTP" });
+  }
+
+  const storedOtp = otpStore.get(ownerContact);
+  if (storedOtp === otp) {
+    otpStore.delete(ownerContact); // one-time use
+    return res.json({ verified: true });
+  } else {
+    return res.status(400).json({ verified: false, error: "Invalid OTP" });
+  }
+};

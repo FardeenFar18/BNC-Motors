@@ -12,8 +12,17 @@ const serviceSchema = new mongoose.Schema(
     serviceCenter: { type: String },
     nextServiceDue: { type: Date },
     performedBy: { type: String },
+     images: {
+    type: [String], // array of base64 strings
+    default: [],
+    validate: [arrayLimit, '{PATH} exceeds the limit of 3']
+  },
   },
   { timestamps: true }
 );
+
+function arrayLimit(val) {
+  return val.length <= 3;
+}
 
 export default mongoose.model("Service", serviceSchema);

@@ -1,4 +1,7 @@
 import Service from "../models/Service.js";
+import Vehicle from "../models/Vehicle.js";
+import nodemailer from "nodemailer";
+
 
 /************Get service by ID***********/
 export const getService = async (req, res, next) => {
@@ -20,13 +23,71 @@ export const getAllServices = async (req, res, next) => {
   }
 };
 
-/*******Add a new service**********/
+
+/******* Add a new service and send email **********/
 export const addService = async (req, res) => {
   try {
-    const service = new Service(req.body); 
+    const { images, ...otherData } = req.body;
+
+    // 1️⃣ Save service
+    const service = new Service({ ...otherData, images });
     await service.save();
-    res.status(201).json({ message: "Service added", data: service });
+
+    // 2️⃣ Find vehicle & owner info
+    const vehicle = await Vehicle.findById(service.vehicle);
+    if (!vehicle) {
+      return res.status(404).json({ error: "Vehicle not found" });
+    }
+
+    /***************** EMAIL NOTIFICATION *****************/
+    try {
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.EMAIL_USER, // your Gmail
+          pass: process.env.EMAIL_PASS, // your Gmail App password
+        },
+      });
+
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: vehicle.ownerMail, // from Vehicle model
+        subject: `Service Completed for ${vehicle.make} ${vehicle.model}`,
+        html: `
+  <h3>Hello ${vehicle.ownerName || "Customer"},</h3>
+  <p>We are pleased to inform you that your vehicle <b>${vehicle.make} ${vehicle.model} (${vehicle.registrationNumber})</b> has been successfully serviced at BNC Motors.</p>
+  <p><b>Service Type:</b> ${service.serviceType}<br/>
+     <b>Cost:</b> ₹${service.cost}<br/>
+     <b>Service Date:</b> ${new Date(service.serviceDate).toLocaleDateString()}<br/>
+     <b>Next Service Due:</b> ${
+       service.nextServiceDue
+         ? new Date(service.nextServiceDue).toLocaleDateString()
+         : "Not specified"
+     }
+  </p>
+  <p>Thank you for choosing <b>BNC Motors</b>. We look forward to serving you again.</p>
+  <p>Best regards,<br/>BNC Motors Team</p>
+`,
+
+      };
+
+      if (vehicle.ownerMail) {
+        await transporter.sendMail(mailOptions);
+        console.log("Email sent to", vehicle.ownerMail);
+      } else {
+        console.log("No owner email found, skipping email.");
+      }
+    } catch (err) {
+      console.error("Email sending failed:", err.message);
+    }
+
+    /***************** RESPONSE *****************/
+    res.status(201).json({
+      message: "Service added & email notification sent successfully!",
+      data: service,
+    });
   } catch (err) {
+    console.error("Error adding service:", err);
     res.status(400).json({ error: err.message });
   }
 };

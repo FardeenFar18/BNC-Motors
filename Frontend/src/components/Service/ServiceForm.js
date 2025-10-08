@@ -16,7 +16,7 @@ export default function ServiceForm() {
     performedBy: "",
     partsUsed: [{ name: "", partNumber: "", cost: "" }],
   });
-
+  const [images, setImages] = useState([]);
   const [vehicles, setVehicles] = useState([]);
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState(false);
@@ -42,6 +42,31 @@ export default function ServiceForm() {
     setForm({ ...form, [e.target.name]: e.target.value });
     if (errors[e.target.name]) setErrors({ ...errors, [e.target.name]: "" });
   };
+
+const handleImageChange = async (e) => {
+  const file = e.target.files[0]; 
+  if (!file) return;
+
+ 
+  if (images.length >= 3) {
+    alert("You can only upload up to 3 images.");
+    e.target.value = ""; 
+    return;
+  }
+
+  const base64 = await convertToBase64(file);
+  setImages((prev) => [...prev, base64]);
+  e.target.value = "";
+};
+
+const convertToBase64 = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = (error) => reject(error);
+  });
+
 
   const handlePartChange = (index, e) => {
     const updatedParts = [...form.partsUsed];
@@ -73,6 +98,7 @@ export default function ServiceForm() {
  const handleSubmit = async (e) => {
   e.preventDefault();
 
+  // Validate form
   if (!validateForm()) return;
 
   if (!form.vehicleId) { 
@@ -83,6 +109,7 @@ export default function ServiceForm() {
   setLoading(true);
 
   try {
+    // Prepare payload
     const payload = {
       vehicle: form.vehicleId, 
       serviceType: form.serviceType,
@@ -96,13 +123,19 @@ export default function ServiceForm() {
       partsUsed: form.partsUsed.map(p => ({
         name: p.name,
         partNumber: p.partNumber,
-        cost: p.cost ? Number(p.cost) : 0
+        cost: p.cost ? Number(p.cost) : 0,
       })),
+       images,
     };
 
+    // Send to backend
     await api.post("/services", payload);
+
+    // Success
     setSuccess(true);
     setApiError("");
+
+    // Reset form
     setForm({
       vehicleId: "",
       serviceType: "",
@@ -115,6 +148,9 @@ export default function ServiceForm() {
       performedBy: "",
       partsUsed: [{ name: "", partNumber: "", cost: "" }],
     });
+    setImages([]); // Clear images
+
+    // Optional: reload page after 2s
     setTimeout(() => window.location.reload(), 2000);
   } catch (err) {
     setApiError(err.response?.data?.error || "Failed to add service.");
@@ -220,6 +256,73 @@ export default function ServiceForm() {
                   <Form.Control as="textarea" rows={2} name="description" value={form.description} onChange={handleChange} placeholder="Enter Description or Remarks" />
                 </Form.Group>
               </Col>
+           {/* Upload Images */}
+<Col md={12} className="mb-3">
+  <Form.Group>
+    <Form.Label className="fw-semibold text-secondary">
+      Upload Images (max 3)
+    </Form.Label>
+    <Form.Control
+      type="file"
+      accept="image/*"
+      multiple
+      onChange={handleImageChange}
+    />
+
+   {/* Preview Section */}
+<div className="mt-3 d-flex flex-wrap gap-3">
+  {images.map((img, i) => (
+    <div key={i} className="position-relative">
+      {/* Image */}
+      <img
+        src={img}
+        alt={`preview-${i}`}
+        style={{
+          width: "90px",
+          height: "90px",
+          objectFit: "cover",
+          borderRadius: "10px",
+          border: "2px solid #dee2e6",
+          boxShadow: "0 2px 5px rgba(0,0,0,0.1)"
+        }}
+      />
+
+      {/* Remove (X) Button */}
+      <button
+        type="button"
+        onClick={() => {
+          setImages(images.filter((_, index) => index !== i));
+        }}
+        style={{
+          position: "absolute",
+          top: "-6px",
+          right: "-6px",
+          backgroundColor: "#dc3545",
+          color: "white",
+          border: "none",
+          borderRadius: "50%",
+          width: "22px",
+          height: "22px",
+          cursor: "pointer",
+          fontSize: "14px",
+          lineHeight: "1",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.3)"
+        }}
+      >
+        ×
+      </button>
+    </div>
+  ))}
+  </div>
+  </Form.Group>
+  </Col>
+
+
+
+
 
               {/* Parts Used */}
               <Col md={12} className="mb-3">

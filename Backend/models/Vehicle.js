@@ -10,6 +10,7 @@ const vehicleSchema = new mongoose.Schema(
     color: { type: String },
     ownerName: { type: String },
     ownerContact: { type: String },
+    ownerMail: { type: String },
     status: {
       type: String,
       enum: ["active", "inactive", "sold", "maintenance"],

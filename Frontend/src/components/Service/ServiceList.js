@@ -12,6 +12,10 @@ import {
 } from "react-bootstrap";
 import Swal from "sweetalert2";
 import { Search } from "react-bootstrap-icons";
+import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+
 
 export default function ServiceList() {
   const [services, setServices] = useState([]);
@@ -23,6 +27,8 @@ export default function ServiceList() {
   const [formErrors, setFormErrors] = useState({});
   const [search, setSearch] = useState("");
   const [vehicles, setVehicles] = useState([]);
+
+
 
   /**********Fetch Services************/
   const fetchServices = async () => {
@@ -95,7 +101,48 @@ export default function ServiceList() {
     }
   };
 
-  const handlePartChange = (index, e) => {
+
+const handleDownloadExcel = (images, service) => {
+  if (!images || images.length === 0) return;
+
+  const wsData = images.map((img, idx) => ({
+    Service: service.serviceType,
+    ImageNumber: idx + 1,
+    FileName: `${service.serviceType}_Image${idx + 1}.png`,
+  }));
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet(wsData);
+  XLSX.utils.book_append_sheet(wb, ws, "Service Images");
+  XLSX.writeFile(wb, `${service.serviceType}_Images.xlsx`);
+
+  // Optional: download images as separate files
+  images.forEach((img, idx) => {
+    const a = document.createElement("a");
+    a.href = img; // base64 image
+    a.download = `${service.serviceType}_Image${idx + 1}.png`;
+    a.click();
+  });
+};
+
+
+const handleDownloadPDF = (images, service) => {
+  if (!images || images.length === 0) return;
+
+  const doc = new jsPDF();
+  doc.text(`${service.serviceType} - Images`, 14, 20);
+
+  images.forEach((img, idx) => {
+    const y = 30 + idx * 50;
+    doc.addImage(img, "JPEG", 15, y, 60, 40); 
+  });
+
+  doc.save(`${service.serviceType}_Images.pdf`);
+};
+
+
+
+const handlePartChange = (index, e) => {
   const { name, value } = e.target;
   setFormData(prev => {
     const parts = [...(prev.partsUsed || [])];
@@ -160,7 +207,7 @@ const handleEdit = (service) => {
   };
 
  
-  const handleSubmit = async (e) => {
+    const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
 
@@ -241,24 +288,47 @@ const handleEdit = (service) => {
                     <td>{s.cost}</td>
                     <td>{s.serviceDate?.split("T")[0]}</td>
                     <td>{s.description || "-"}</td>
-                    <td className="text-center">
-                      <Button
-                        size="sm"
-                        variant="primary"
-                        className="me-2 rounded-pill px-3"
-                        onClick={() => handleEdit(s)}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="danger"
-                        className="rounded-pill px-3"
-                        onClick={() => handleDelete(s._id)}
-                      >
-                        Delete
-                      </Button>
-                    </td>
+                   <td className="text-center">
+  <Button
+    size="sm"
+    variant="primary"
+    className="me-2 rounded-pill px-3"
+    onClick={() => handleEdit(s)}
+  >
+    Edit
+  </Button>&nbsp;
+
+  {/* Excel Download */}
+  <Button
+    size="sm"
+    variant="success"
+    className="me-2 rounded-pill px-3"
+    onClick={() => handleDownloadExcel(s.images, s)}
+  >
+    Excel
+  </Button>
+  &nbsp;
+
+  {/* PDF Download */}
+  <Button
+    size="sm"
+    variant="info"
+    className="me-2 rounded-pill px-3"
+    onClick={() => handleDownloadPDF(s.images, s)}
+  >
+    PDF
+  </Button>
+&nbsp;
+  <Button
+    size="sm"
+    variant="danger"
+    className="rounded-pill px-3"
+    onClick={() => handleDelete(s._id)}
+  >
+    Delete
+  </Button>
+</td>
+
                   </tr>
                 ))}
               </tbody>
@@ -358,10 +428,13 @@ const handleEdit = (service) => {
     <Button variant="secondary" onClick={() => setEditingService(null)}>Cancel</Button>&nbsp;
     <Button variant="primary" type="submit">Save Changes</Button>
   </div>
+  
 </Form>
 
         </Modal.Body>
       </Modal>
+      
+
     </div>
   );
 }

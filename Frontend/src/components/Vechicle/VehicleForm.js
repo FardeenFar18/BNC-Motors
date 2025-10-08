@@ -15,17 +15,30 @@ export default function VehicleForm() {
     color: "",
     ownerName: "",
     ownerContact: "",
+    ownerMail: "",
     status: "",
     notes: "",
   });
 
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpTimer, setOtpTimer] = useState(0);
+  const [otp, setOtp] = useState("");
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [otpError, setOtpError] = useState("");
+const handleChange = (e) => {
+  setForm({ ...form, [e.target.name]: e.target.value });
+  if (errors[e.target.name]) setErrors({ ...errors, [e.target.name]: "" });
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-    if (errors[e.target.name]) setErrors({ ...errors, [e.target.name]: "" });
-  };
+  if (e.target.name === "ownerContact") {
+    setOtpSent(false);
+    setOtpTimer(0);
+    setOtpVerified(false); // reset verified
+    setOtp(""); // clear previous OTP
+  }
+};
+
 
   const validateForm = () => {
     const requiredFields = ["vin", "registrationNumber", "make", "model"];
@@ -60,8 +73,9 @@ export default function VehicleForm() {
         year: "",
         color: "",
         ownerName: "",
+        ownerMail: "",
         ownerContact: "",
-        status: "inactive",
+        status: "",
         notes: "",
       });
       setErrors({});
@@ -69,6 +83,34 @@ export default function VehicleForm() {
       setErrors({ api: err.response?.data?.error || "Failed to add vehicle" });
     }
   };
+
+const handleSendOtp = async () => {
+  if (!form.ownerContact || form.ownerContact.length < 10) {
+    alert("Enter a valid 10-digit phone number");
+    return;
+  }
+
+  try {
+    const response = await api.post("/vehicles/send-otp", {
+      ownerContact: form.ownerContact, // ✅ make sure this exists
+    });
+    console.log(response.data);
+    setOtpSent(true);
+    setOtpTimer(60);
+  } catch (err) {
+    console.error("OTP sending failed:", err.response?.data || err.message);
+    alert("Failed to send OTP");
+  }
+};
+
+
+    useEffect(() => {
+    let timer;
+    if (otpTimer > 0) {
+      timer = setTimeout(() => setOtpTimer(otpTimer - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [otpTimer]);
 
   useEffect(() => {
     if (success) {
@@ -78,6 +120,33 @@ export default function VehicleForm() {
       return () => clearTimeout(timer);
     }
   }, [success, navigate]);
+
+  const handleVerifyOtp = async () => {
+  if (!otp) {
+    setOtpError("Enter OTP");
+    return;
+  }
+
+  try {
+    const response = await api.post("/vehicles/verify-otp", {
+      ownerContact: form.ownerContact,
+      otp: otp,
+    });
+    if (response.data.verified) {
+      setOtpVerified(true);
+      setOtpError("");
+      alert("OTP verified successfully!");
+    } else {
+      setOtpError("Invalid OTP");
+      setOtpVerified(false);
+    }
+  } catch (err) {
+    console.error("OTP verification failed:", err.response?.data || err.message);
+    setOtpError("Failed to verify OTP");
+    setOtpVerified(false);
+  }
+};
+
 
   return (
     <Container className="my-5">
@@ -185,8 +254,85 @@ export default function VehicleForm() {
                   />
                 </Form.Group>
               </Col>
-
+              
               <Col md={6} className="mb-3">
+  <Form.Group>
+    <Form.Label className="fw-semibold text-secondary">
+      Owner Contact
+     
+    </Form.Label>
+
+    <Form.Control
+      type="text"
+      name="ownerContact"
+      value={form.ownerContact}
+      onChange={handleChange}
+      placeholder="Owner Contact"
+    />
+     {/* Show blue verified badge if OTP is verified */}
+     {otpVerified && (
+        <span
+          style={{
+            position: "absolute",
+            left: "600px",
+            top: "53%",
+            transform: "translateY(-50%)",
+            color: "green",
+            fontWeight: "bold",
+            fontSize: "1.2rem",
+          }}
+        >
+          ✓
+        </span>
+      )}
+  </Form.Group>
+
+  {/* Send OTP button */}
+  {form.ownerContact.length === 10 && !otpVerified && (
+    <Button
+      variant="info"
+      className="mt-2"
+      onClick={handleSendOtp}
+      disabled={otpTimer > 0}
+    >
+      {otpTimer > 0 ? `Resend OTP in ${otpTimer}s` : "Send OTP"}
+    </Button>
+  )}
+
+{/* OTP input for verification — only visible while timer > 0 */}
+{otpSent && !otpVerified && otpTimer > 0 && (
+  <div className="mt-2">
+    <Form.Control
+      type="text"
+      name="otp"
+      value={otp}
+      onChange={(e) => setOtp(e.target.value)}
+      placeholder="Enter OTP"
+    />
+    <Button variant="primary" className="mt-2" onClick={handleVerifyOtp}>
+      Verify OTP
+    </Button>
+    {otpError && <div className="text-danger mt-1">{otpError}</div>}
+  </div>
+)}
+
+{/* When timer finishes but OTP not verified */}
+{otpSent && !otpVerified && otpTimer === 0 && (
+  <Alert variant="warning" className="mt-2 p-2">
+    OTP expired. Please resend OTP.
+  </Alert>
+)}
+
+
+  {/* Success message after OTP verified */}
+  {otpVerified && (
+    <Alert variant="success" className="mt-2 p-2">
+      OTP verified successfully!
+    </Alert>
+  )}
+</Col>
+
+<Col md={6} className="mb-3">
                 <Form.Group>
                   <Form.Label className="fw-semibold text-secondary">Owner Name</Form.Label>
                   <Form.Control
@@ -199,15 +345,17 @@ export default function VehicleForm() {
                 </Form.Group>
               </Col>
 
-              <Col md={6} className="mb-3">
+
+
+               <Col md={6} className="mb-3">
                 <Form.Group>
-                  <Form.Label className="fw-semibold text-secondary">Owner Contact</Form.Label>
+                  <Form.Label className="fw-semibold text-secondary">Owner Mail</Form.Label>
                   <Form.Control
                     type="text"
-                    name="ownerContact"
-                    value={form.ownerContact}
+                    name="ownerMail"
+                    value={form.ownerMail}
                     onChange={handleChange}
-                    placeholder="Owner Contact"
+                    placeholder="Owner Mail"
                   />
                 </Form.Group>
               </Col>

@@ -5,6 +5,7 @@ import ServicePage from "./pages/ServicePage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import DashboardPage from "./pages/DashboardPage";
+import MapPage from "./pages/MapPage";
 import VehicleList from "./components/Vechicle/VehicleList";
 import ServiceList from "./components/Service/ServiceList";
 
@@ -46,6 +47,7 @@ export default function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/VehicleList" element={<VehicleList />} />
                                 <Route path="/ServiceList" element={<ServiceList />} />
+                                <Route path="/Map" element={<MapPage/>}/>
 
 
 

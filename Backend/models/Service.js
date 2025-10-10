@@ -13,7 +13,7 @@ const serviceSchema = new mongoose.Schema(
     nextServiceDue: { type: Date },
     performedBy: { type: String },
      images: {
-    type: [String], // array of base64 strings
+    type: [String], 
     default: [],
     validate: [arrayLimit, '{PATH} exceeds the limit of 3']
   },

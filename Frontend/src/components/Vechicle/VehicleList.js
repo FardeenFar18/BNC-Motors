@@ -157,7 +157,7 @@ export default function VehicleList() {
   return (
     <div className="min-vh-100 bg-primary bg-gradient bg-opacity-75 py-5">
       <div className="container bg-light rounded-4 shadow-lg p-4">
-        {/* Header Section */}
+    
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h3 className="fw-bold text-primary mb-0">
             Vehicle Management
@@ -174,7 +174,6 @@ export default function VehicleList() {
           </InputGroup>
         </div>
 
-        {/* Vehicle Table */}
         {filteredVehicles.length > 0 ? (
           <div className="table-responsive rounded-4 border shadow-sm bg-white">
             <Table hover bordered className="align-middle mb-0">
@@ -250,7 +249,6 @@ export default function VehicleList() {
         )}
       </div>
 
-      {/* Edit Modal */}
       <Modal
         show={!!editingVehicle}
         onHide={() => setEditingVehicle(null)}

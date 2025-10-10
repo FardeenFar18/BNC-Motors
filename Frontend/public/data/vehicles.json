@@ -1,0 +1,47 @@
+[
+  {
+    "id": 1,
+    "name": "Chennai Vehicle",
+    "lat": 13.0827,
+    "lng": 80.2707,
+    "vin": "VIN001",
+    "registration": "TN01AB1234",
+    "status": "active"
+  },
+  {
+    "id": 2,
+    "name": "Kallakurichi Vehicle",
+    "lat": 11.7361,
+    "lng": 78.9634,
+    "vin": "VIN002",
+    "registration": "TN02CD5678",
+    "status": "inactive"
+  },
+  {
+    "id": 3,
+    "name": "Salem Vehicle",
+    "lat": 11.6643,
+    "lng": 78.1460,
+    "vin": "VIN003",
+    "registration": "TN03EF9012",
+    "status": "active"
+  },
+  {
+    "id": 4,
+    "name": "Madurai Vehicle",
+    "lat": 9.9252,
+    "lng": 78.1198,
+    "vin": "VIN004",
+    "registration": "TN04GH3456",
+    "status": "inactive"
+  },
+  {
+    "id": 5,
+    "name": "Coimbatore Vehicle",
+    "lat": 11.0168,
+    "lng": 76.9558,
+    "vin": "VIN005",
+    "registration": "TN05IJ7890",
+    "status": "active"
+  }
+]

@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 
 /********Helper function to generate token ***********/
 const generateToken = (id) => {
-  return jwt.sign({ id }, "mysecretkey", { expiresIn: "30d" }); // replace "mysecretkey" with your own secret
+  return jwt.sign({ id }, "mysecretkey", { expiresIn: "30d" }); 
 };
 
 /********Signup******/

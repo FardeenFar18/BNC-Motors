@@ -34,14 +34,14 @@ const handleChange = (e) => {
   if (e.target.name === "ownerContact") {
     setOtpSent(false);
     setOtpTimer(0);
-    setOtpVerified(false); // reset verified
-    setOtp(""); // clear previous OTP
+    setOtpVerified(false); 
+    setOtp(""); 
   }
 };
 
 
   const validateForm = () => {
-    const requiredFields = ["vin", "registrationNumber", "make", "model"];
+    const requiredFields = ["vin", "registrationNumber", "make", "model","ownerContact","ownerMail"];
     const newErrors = {};
 
     requiredFields.forEach((field) => {
@@ -92,7 +92,7 @@ const handleSendOtp = async () => {
 
   try {
     const response = await api.post("/vehicles/send-otp", {
-      ownerContact: form.ownerContact, // ✅ make sure this exists
+      ownerContact: form.ownerContact, 
     });
     console.log(response.data);
     setOtpSent(true);
@@ -258,7 +258,7 @@ const handleSendOtp = async () => {
               <Col md={6} className="mb-3">
   <Form.Group>
     <Form.Label className="fw-semibold text-secondary">
-      Owner Contact
+      Owner Contact *
      
     </Form.Label>
 
@@ -269,7 +269,7 @@ const handleSendOtp = async () => {
       onChange={handleChange}
       placeholder="Owner Contact"
     />
-     {/* Show blue verified badge if OTP is verified */}
+
      {otpVerified && (
         <span
           style={{
@@ -287,7 +287,7 @@ const handleSendOtp = async () => {
       )}
   </Form.Group>
 
-  {/* Send OTP button */}
+
   {form.ownerContact.length === 10 && !otpVerified && (
     <Button
       variant="info"
@@ -299,7 +299,7 @@ const handleSendOtp = async () => {
     </Button>
   )}
 
-{/* OTP input for verification — only visible while timer > 0 */}
+
 {otpSent && !otpVerified && otpTimer > 0 && (
   <div className="mt-2">
     <Form.Control
@@ -316,7 +316,7 @@ const handleSendOtp = async () => {
   </div>
 )}
 
-{/* When timer finishes but OTP not verified */}
+
 {otpSent && !otpVerified && otpTimer === 0 && (
   <Alert variant="warning" className="mt-2 p-2">
     OTP expired. Please resend OTP.
@@ -324,7 +324,7 @@ const handleSendOtp = async () => {
 )}
 
 
-  {/* Success message after OTP verified */}
+ 
   {otpVerified && (
     <Alert variant="success" className="mt-2 p-2">
       OTP verified successfully!

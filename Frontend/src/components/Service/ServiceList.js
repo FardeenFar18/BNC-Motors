@@ -27,6 +27,9 @@ export default function ServiceList() {
   const [formErrors, setFormErrors] = useState({});
   const [search, setSearch] = useState("");
   const [vehicles, setVehicles] = useState([]);
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
+  const [selectedService, setSelectedService] = useState(null);
+
 
 
 
@@ -116,10 +119,10 @@ const handleDownloadExcel = (images, service) => {
   XLSX.utils.book_append_sheet(wb, ws, "Service Images");
   XLSX.writeFile(wb, `${service.serviceType}_Images.xlsx`);
 
-  // Optional: download images as separate files
+
   images.forEach((img, idx) => {
     const a = document.createElement("a");
-    a.href = img; // base64 image
+    a.href = img; 
     a.download = `${service.serviceType}_Image${idx + 1}.png`;
     a.click();
   });
@@ -247,7 +250,6 @@ const handleEdit = (service) => {
   return (
     <div className="min-vh-100 bg-primary bg-gradient bg-opacity-75 py-5">
       <div className="container bg-light rounded-4 shadow-lg p-4">
-        {/* Header Section */}
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h3 className="fw-bold text-primary mb-0">Service Management</h3>
           <InputGroup style={{ width: "300px" }}>
@@ -262,7 +264,6 @@ const handleEdit = (service) => {
           </InputGroup>
         </div>
 
-        {/* Service Table */}
         {filteredServices.length > 0 ? (
           <div className="table-responsive rounded-4 border shadow-sm bg-white">
             <Table hover bordered className="align-middle mb-0">
@@ -298,27 +299,56 @@ const handleEdit = (service) => {
     Edit
   </Button>&nbsp;
 
-  {/* Excel Download */}
-  <Button
-    size="sm"
-    variant="success"
-    className="me-2 rounded-pill px-3"
-    onClick={() => handleDownloadExcel(s.images, s)}
-  >
-    Excel
-  </Button>
-  &nbsp;
+<Button
+  size="sm"
+  variant="info"
+  className="me-2 rounded-pill px-3"
+  onClick={() => {
+    setSelectedService(s);
+    setShowDownloadModal(true);
+  }}
+>
+  Download
+</Button>
 
-  {/* PDF Download */}
-  <Button
-    size="sm"
-    variant="info"
-    className="me-2 rounded-pill px-3"
-    onClick={() => handleDownloadPDF(s.images, s)}
-  >
-    PDF
-  </Button>
-&nbsp;
+
+<Modal
+  show={showDownloadModal}
+  onHide={() => setShowDownloadModal(false)}
+  centered
+>
+  <Modal.Header closeButton className="bg-primary bg-gradient text-white">
+    <Modal.Title>Download Options</Modal.Title>
+  </Modal.Header>
+  <Modal.Body className="bg-light text-center">
+    <p className="fw-semibold text-secondary mb-3">
+      Choose a format to download service data and images.
+    </p>
+
+    <div className="d-flex justify-content-center gap-3">
+      <Button
+        variant="success"
+        onClick={() => {
+          handleDownloadExcel(selectedService?.images, selectedService);
+          setShowDownloadModal(false);
+        }}
+      >
+        Download Excel
+      </Button>
+      <Button
+        variant="info"
+        onClick={() => {
+          handleDownloadPDF(selectedService?.images, selectedService);
+          setShowDownloadModal(false);
+        }}
+      >
+        Download PDF
+      </Button>
+    </div>
+  </Modal.Body>
+</Modal>
+
+
   <Button
     size="sm"
     variant="danger"
@@ -341,7 +371,7 @@ const handleEdit = (service) => {
         )}
       </div>
 
-      {/* Edit Modal */}
+    
       <Modal
         show={!!editingService}
         onHide={() => setEditingService(null)}
@@ -353,7 +383,7 @@ const handleEdit = (service) => {
         </Modal.Header>
         <Modal.Body className="bg-light">
         <Form onSubmit={handleSubmit}>
-  {/* Vehicle select */}
+
   <Form.Group className="mb-3">
     <Form.Label>Vehicle</Form.Label>
     <Form.Select name="vehicleId" value={formData.vehicleId} onChange={handleChange} isInvalid={!!formErrors.vehicleId}>
@@ -365,55 +395,54 @@ const handleEdit = (service) => {
     <Form.Control.Feedback type="invalid">{formErrors.vehicleId}</Form.Control.Feedback>
   </Form.Group>
 
-  {/* Service Type */}
+
   <Form.Group className="mb-3">
     <Form.Label>Service Type</Form.Label>
     <Form.Control type="text" name="serviceType" value={formData.serviceType} onChange={handleChange} isInvalid={!!formErrors.serviceType} />
   </Form.Group>
 
-  {/* Service Date */}
+ 
   <Form.Group className="mb-3">
     <Form.Label>Service Date</Form.Label>
     <Form.Control type="date" name="serviceDate" value={formData.serviceDate} onChange={handleChange} isInvalid={!!formErrors.serviceDate} />
   </Form.Group>
 
-  {/* Cost */}
+
   <Form.Group className="mb-3">
     <Form.Label>Cost</Form.Label>
     <Form.Control type="number" name="cost" value={formData.cost} onChange={handleChange} />
   </Form.Group>
 
-  {/* Mileage */}
+
   <Form.Group className="mb-3">
     <Form.Label>Mileage</Form.Label>
     <Form.Control type="number" name="mileage" value={formData.mileage} onChange={handleChange} />
   </Form.Group>
 
-  {/* Description */}
+
   <Form.Group className="mb-3">
     <Form.Label>Remarks</Form.Label>
     <Form.Control as="textarea" rows={2} name="description" value={formData.description} onChange={handleChange} />
   </Form.Group>
 
-  {/* Service Center */}
+
   <Form.Group className="mb-3">
     <Form.Label>Service Center</Form.Label>
     <Form.Control type="text" name="serviceCenter" value={formData.serviceCenter} onChange={handleChange} />
   </Form.Group>
 
-  {/* Next Service Due */}
   <Form.Group className="mb-3">
     <Form.Label>Next Service Due</Form.Label>
     <Form.Control type="date" name="nextServiceDue" value={formData.nextServiceDue} onChange={handleChange} />
   </Form.Group>
 
-  {/* Performed By */}
+ 
   <Form.Group className="mb-3">
     <Form.Label>Performed By</Form.Label>
     <Form.Control type="text" name="performedBy" value={formData.performedBy} onChange={handleChange} />
   </Form.Group>
 
-  {/* Parts Used - Dynamic Array */}
+
   {formData.partsUsed?.map((part, idx) => (
     <div key={idx} className="d-flex mb-2 gap-2">
       <Form.Control placeholder="Part Name" name="name" value={part.name} onChange={(e) => handlePartChange(idx, e)} />

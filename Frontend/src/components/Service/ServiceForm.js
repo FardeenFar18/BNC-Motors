@@ -24,7 +24,7 @@ export default function ServiceForm() {
   const [loading, setLoading] = useState(false);
   const [vehiclesLoading, setVehiclesLoading] = useState(true);
 
-  // Fetch vehicles
+
   useEffect(() => {
     api.get("/vehicles")
       .then((res) => {
@@ -98,7 +98,7 @@ const convertToBase64 = (file) =>
  const handleSubmit = async (e) => {
   e.preventDefault();
 
-  // Validate form
+  
   if (!validateForm()) return;
 
   if (!form.vehicleId) { 
@@ -109,7 +109,6 @@ const convertToBase64 = (file) =>
   setLoading(true);
 
   try {
-    // Prepare payload
     const payload = {
       vehicle: form.vehicleId, 
       serviceType: form.serviceType,
@@ -128,14 +127,11 @@ const convertToBase64 = (file) =>
        images,
     };
 
-    // Send to backend
+   
     await api.post("/services", payload);
 
-    // Success
     setSuccess(true);
     setApiError("");
-
-    // Reset form
     setForm({
       vehicleId: "",
       serviceType: "",
@@ -148,9 +144,8 @@ const convertToBase64 = (file) =>
       performedBy: "",
       partsUsed: [{ name: "", partNumber: "", cost: "" }],
     });
-    setImages([]); // Clear images
+    setImages([]); 
 
-    // Optional: reload page after 2s
     setTimeout(() => window.location.reload(), 2000);
   } catch (err) {
     setApiError(err.response?.data?.error || "Failed to add service.");
@@ -173,7 +168,7 @@ const convertToBase64 = (file) =>
 
           <Form onSubmit={handleSubmit}>
             <Row>
-              {/* Vehicle */}
+           
               <Col md={6} className="mb-3">
                 <Form.Group>
                   <Form.Label className="fw-semibold text-secondary">Select Vehicle *</Form.Label>
@@ -189,7 +184,6 @@ const convertToBase64 = (file) =>
                 </Form.Group>
               </Col>
 
-              {/* Service Type */}
               <Col md={6} className="mb-3">
                 <Form.Group>
                   <Form.Label className="fw-semibold text-secondary">Service Type *</Form.Label>
@@ -198,7 +192,7 @@ const convertToBase64 = (file) =>
                 </Form.Group>
               </Col>
 
-              {/* Service Date */}
+            
               <Col md={6} className="mb-3">
                 <Form.Group>
                   <Form.Label className="fw-semibold text-secondary">Service Date *</Form.Label>
@@ -207,7 +201,7 @@ const convertToBase64 = (file) =>
                 </Form.Group>
               </Col>
 
-              {/* Cost */}
+              
               <Col md={6} className="mb-3">
                 <Form.Group>
                   <Form.Label className="fw-semibold text-secondary">Cost</Form.Label>
@@ -216,7 +210,6 @@ const convertToBase64 = (file) =>
                 </Form.Group>
               </Col>
 
-              {/* Mileage */}
               <Col md={6} className="mb-3">
                 <Form.Group>
                   <Form.Label className="fw-semibold text-secondary">Mileage</Form.Label>
@@ -225,7 +218,7 @@ const convertToBase64 = (file) =>
                 </Form.Group>
               </Col>
 
-              {/* Service Center */}
+              
               <Col md={6} className="mb-3">
                 <Form.Group>
                   <Form.Label className="fw-semibold text-secondary">Service Center</Form.Label>
@@ -233,7 +226,7 @@ const convertToBase64 = (file) =>
                 </Form.Group>
               </Col>
 
-              {/* Next Service Due */}
+          
               <Col md={6} className="mb-3">
                 <Form.Group>
                   <Form.Label className="fw-semibold text-secondary">Next Service Due</Form.Label>
@@ -241,7 +234,7 @@ const convertToBase64 = (file) =>
                 </Form.Group>
               </Col>
 
-              {/* Performed By */}
+            
               <Col md={6} className="mb-3">
                 <Form.Group>
                   <Form.Label className="fw-semibold text-secondary">Performed By</Form.Label>
@@ -249,14 +242,13 @@ const convertToBase64 = (file) =>
                 </Form.Group>
               </Col>
 
-              {/* Description */}
               <Col md={12} className="mb-3">
                 <Form.Group>
                   <Form.Label className="fw-semibold text-secondary">Remarks</Form.Label>
                   <Form.Control as="textarea" rows={2} name="description" value={form.description} onChange={handleChange} placeholder="Enter Description or Remarks" />
                 </Form.Group>
               </Col>
-           {/* Upload Images */}
+        
 <Col md={12} className="mb-3">
   <Form.Group>
     <Form.Label className="fw-semibold text-secondary">
@@ -269,11 +261,10 @@ const convertToBase64 = (file) =>
       onChange={handleImageChange}
     />
 
-   {/* Preview Section */}
 <div className="mt-3 d-flex flex-wrap gap-3">
   {images.map((img, i) => (
     <div key={i} className="position-relative">
-      {/* Image */}
+    
       <img
         src={img}
         alt={`preview-${i}`}
@@ -287,7 +278,7 @@ const convertToBase64 = (file) =>
         }}
       />
 
-      {/* Remove (X) Button */}
+    
       <button
         type="button"
         onClick={() => {
@@ -324,7 +315,6 @@ const convertToBase64 = (file) =>
 
 
 
-              {/* Parts Used */}
               <Col md={12} className="mb-3">
                 <Form.Label className="fw-semibold text-secondary">Parts Used</Form.Label>
                 {form.partsUsed.map((part, index) => (

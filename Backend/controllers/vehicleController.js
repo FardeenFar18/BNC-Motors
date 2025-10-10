@@ -1,6 +1,7 @@
 import Vehicle from "../models/Vehicle.js";
 import Service from "../models/Service.js";
 import { sendSMSUsingSNS } from "../utils/smsService.js";
+import nodemailer from "nodemailer";
 
 
 /******************Get all vehicles (with pagination + search)*********************/
@@ -37,6 +38,58 @@ export const createVehicle = async (req, res, next) => {
   try {
     const vehicle = new Vehicle(req.body);
     await vehicle.save();
+
+    
+    if (vehicle.ownerMail) {
+      try {
+        const transporter = nodemailer.createTransport({
+          service: "gmail", 
+          auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+          },
+        });
+
+        const mailOptions = {
+          from: process.env.EMAIL_USER,
+          to: vehicle.ownerMail,
+          subject: `Vehicle Registered Successfully: ${vehicle.registrationNumber}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+              <h2>Hello ${vehicle.ownerName || "Owner"},</h2>
+              <p>Your vehicle has been successfully registered in our system.</p>
+              
+              <h3>Vehicle Details:</h3>
+              <table style="border-collapse: collapse; width: 100%;">
+                <tr>
+                  <td style="padding: 8px; border: 1px solid #ddd;"><strong>Registration Number:</strong></td>
+                  <td style="padding: 8px; border: 1px solid #ddd;">${vehicle.registrationNumber}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px; border: 1px solid #ddd;"><strong>Make & Model:</strong></td>
+                  <td style="padding: 8px; border: 1px solid #ddd;">${vehicle.make} ${vehicle.model}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px; border: 1px solid #ddd;"><strong>VIN:</strong></td>
+                  <td style="padding: 8px; border: 1px solid #ddd;">${vehicle.vin || "N/A"}</td>
+                </tr>
+              </table>
+
+              <p>Thank you,<br/>
+              <strong>BNC Motor Team</strong></p>
+            </div>
+          `,
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log("Email sent to:", vehicle.ownerMail);
+      } catch (err) {
+        console.error("Email sending failed:", err.message);
+      }
+    } else {
+      console.log("No owner email found, skipping email.");
+    }
+
     res.status(201).json(vehicle);
   } catch (err) {
     next(err);
@@ -125,13 +178,13 @@ export const sendOtpHandler = async (req, res) => {
       return res.status(400).json({ error: "Owner contact number is required" });
     }
 
-    // Generate 6-digit OTP
+   
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Send OTP via SMS
+   
     await sendSMSUsingSNS(otp, ownerContact);
 
-    // Store OTP temporarily (auto-expire in 5 min)
+    
     otpStore.set(ownerContact, otp);
     setTimeout(() => otpStore.delete(ownerContact), 5 * 60 * 1000);
 
@@ -151,7 +204,7 @@ export const verifyOtpHandler = (req, res) => {
 
   const storedOtp = otpStore.get(ownerContact);
   if (storedOtp === otp) {
-    otpStore.delete(ownerContact); // one-time use
+    otpStore.delete(ownerContact); 
     return res.json({ verified: true });
   } else {
     return res.status(400).json({ verified: false, error: "Invalid OTP" });
